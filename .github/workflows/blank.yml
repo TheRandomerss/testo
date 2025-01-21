@@ -1,16 +1,15 @@
-name: SSH Server
+name: SSH Server with Reverse Tunnel
 
 on:
-  workflow_dispatch: # Allows manual triggering of the workflow
-  push: # Optional: Trigger on code pushes
+  workflow_dispatch: # Allows manual workflow triggers
 
 jobs:
   ssh-server:
-    runs-on: ubuntu-latest # GitHub Actions uses Linux runners for SSH
+    runs-on: ubuntu-latest
     steps:
       - name: Set up SSH server
         run: |
-          # Install and start OpenSSH server
+          # Install OpenSSH server
           sudo apt-get update
           sudo apt-get install -y openssh-server
           sudo service ssh start
@@ -18,11 +17,8 @@ jobs:
           # Set up a password for the 'runner' user
           echo "runner:github" | sudo chpasswd
 
-          # Retrieve and print public IP address
-          public_ip=$(curl -s http://ifconfig.me)
-          echo "SSH server is ready. Use the following command to connect:"
-          echo "ssh runner@${public_ip}"
+          # Create a reverse SSH tunnel to your Windows PC
+          ssh -o StrictHostKeyChecking=no -R 2222:localhost:22 bilal@smexy.zapto.org -p 22
 
-          # Keep the workflow alive with an infinite loop
-          echo "Keeping the SSH server alive..."
+          # Keep the session alive
           while true; do sleep 60; done
