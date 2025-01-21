@@ -10,7 +10,7 @@ jobs:
     # Step 1: Checkout repository (if necessary)
     - name: Checkout repository
       uses: actions/checkout@v2
-      
+
     # Step 2: Set up SSH keys for secure communication
     - name: Set up SSH
       uses: webfactory/ssh-agent@v0.5.3
@@ -37,8 +37,8 @@ jobs:
     - name: Expose Port 22 with ngrok
       run: |
         # Download and install ngrok
-        wget https://bin.equinox.io/c/4VmDzA7iaJ6/ngrok-stable-linux-amd64.zip
-        unzip ngrok-stable-linux-amd64.zip
+        wget https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-amd64.tgz
+        tar -xvzf ngrok-v3-stable-linux-amd64.tgz
         ./ngrok authtoken ${{ secrets.NGROK_SECRET_KEY }}  # Use the stored NGROK_SECRET_KEY for authentication
 
         # Expose port 22 using ngrok
