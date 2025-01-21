@@ -1,24 +1,16 @@
-name: SSH Server with Reverse Tunnel
-
-on:
-  workflow_dispatch: # Allows manual workflow triggers
-
 jobs:
-  ssh-server:
+  deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Set up SSH server
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up SSH key
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Test SSH Connection
         run: |
-          # Install OpenSSH server
-          sudo apt-get update
-          sudo apt-get install -y openssh-server
-          sudo service ssh start
-
-          # Set up a password for the 'runner' user
-          echo "runner:github" | sudo chpasswd
-
-          # Create a reverse SSH tunnel to your Windows PC
-          ssh -o StrictHostKeyChecking=no -R 2222:localhost:22 bilal@smexy.zapto.org -p 22
-
-          # Keep the session alive
-          while true; do sleep 60; done
+          ssh -o StrictHostKeyChecking=no bilal@smexy.zapto.org "echo 'SSH Connection Successful'"
