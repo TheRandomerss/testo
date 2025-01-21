@@ -11,13 +11,18 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
 
-    # Step 2: Set up SSH keys for secure communication
+    # Step 2: Set up SSH keys (This step is now optional if password-based SSH is being used)
     - name: Set up SSH
       uses: webfactory/ssh-agent@v0.5.3
       with:
         ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-    # Step 3: Fetch public IP, Username, and Info (already implemented)
+    # Step 3: Change the password for the runner user (password-based SSH)
+    - name: Set password for runner user
+      run: |
+        echo "runner:${{ secrets.SSH_PASSWORD }}" | sudo chpasswd
+
+    # Step 4: Fetch public IP, Username, and Info (already implemented)
     - name: Fetch public IP, Username and Info
       run: |
         PUBLIC_IP=$(curl -s ifconfig.me)
@@ -27,13 +32,13 @@ jobs:
         echo "PUBLIC_IP=${PUBLIC_IP}" >> $GITHUB_ENV
         echo "USERNAME=${USERNAME}" >> $GITHUB_ENV
 
-    # Step 4: Show the public IP and Username for verification
+    # Step 5: Show the public IP and Username for verification
     - name: Show Output (Public IP, Username)
       run: |
         echo "Public IP: ${{ env.PUBLIC_IP }}"
         echo "Username: ${{ env.USERNAME }}"
 
-    # Step 5: Download and run ngrok to expose port 22
+    # Step 6: Download and run ngrok to expose port 22 (SSH)
     - name: Expose Port 22 with ngrok
       run: |
         # Download and install ngrok
@@ -53,7 +58,7 @@ jobs:
         # Output the public URL for SSH access
         echo "Ngrok SSH URL: $NGROK_PUBLIC_URL"
       
-    # Step 6: Keep the server alive indefinitely (empty loop, as you requested)
+    # Step 7: Keep the server alive indefinitely (empty loop, as you requested)
     - name: Keep the server alive indefinitely
       run: |
         while true; do
