@@ -1,16 +1,37 @@
+name: Create SSH Access
+
+on: [push]
+
 jobs:
-  deploy:
+  create_ssh_access:
     runs-on: ubuntu-latest
-
+    
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+    # Step 1: Checkout repo (if necessary)
+    - name: Checkout repository
+      uses: actions/checkout@v2
+      
+    # Step 2: Set up SSH keys for secure communication
+    - name: Set up SSH
+      uses: webfactory/ssh-agent@v0.5.3
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Set up SSH key
-        uses: webfactory/ssh-agent@v0.5.3
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+    # Step 3: Execute command on remote server to fetch server info
+    - name: Fetch server information (public IP, Username)
+      run: |
+        SERVER_IP=$(curl -s ifconfig.me)  # Get Public IP of the server
+        echo "Public IP of server is: $SERVER_IP"
 
-      - name: Test SSH Connection
-        run: |
-          ssh -o StrictHostKeyChecking=no bilal@smexy.zapto.org "echo 'SSH Connection Successful'"
+        # For Username, fetching SSH info would be based on your system setup
+        echo "Server Username is: $(whoami)"
+
+        # Echo values as GitHub Action outputs for later use
+        echo "SERVER_IP=${SERVER_IP}" >> $GITHUB_ENV
+        echo "SERVER_USERNAME=$(whoami)" >> $GITHUB_ENV
+
+    # Step 4: Output the results
+    - name: Show Output (SSH Info)
+      run: |
+        echo "Public IP: ${{ env.SERVER_IP }}"
+        echo "Username: ${{ env.SERVER_USERNAME }}"
