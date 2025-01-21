@@ -1,4 +1,4 @@
-name: Create SSH Access
+name: Create SSH Access with Ngrok
 
 on: [push]
 
@@ -10,35 +10,50 @@ jobs:
     # Step 1: Checkout repository (if necessary)
     - name: Checkout repository
       uses: actions/checkout@v2
-
+      
     # Step 2: Set up SSH keys for secure communication
     - name: Set up SSH
       uses: webfactory/ssh-agent@v0.5.3
       with:
         ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-    # Step 3: Execute command on remote server to fetch server info (public IP)
+    # Step 3: Fetch public IP, Username, and Info (already implemented)
     - name: Fetch public IP, Username and Info
       run: |
-        # Fetch the public IP of the server executing the action
-        PUBLIC_IP=$(curl -s ifconfig.me)  # or use ipify
-        echo "Public IP of server is: $PUBLIC_IP"
-
-        # Fetch the username of the machine (SSH user)
+        PUBLIC_IP=$(curl -s ifconfig.me)
         USERNAME=$(whoami)
-        echo "Username is: $USERNAME"
 
-        # Export to GitHub Action's environment
+        # Export details to GitHub environment
         echo "PUBLIC_IP=${PUBLIC_IP}" >> $GITHUB_ENV
         echo "USERNAME=${USERNAME}" >> $GITHUB_ENV
 
-    # Step 4: Display the public IP and Username
+    # Step 4: Show the public IP and Username for verification
     - name: Show Output (Public IP, Username)
       run: |
         echo "Public IP: ${{ env.PUBLIC_IP }}"
         echo "Username: ${{ env.USERNAME }}"
 
-    # Step 5: Keep the server running indefinitely (empty loop)
+    # Step 5: Download and run ngrok to expose port 22
+    - name: Expose Port 22 with ngrok
+      run: |
+        # Download and install ngrok
+        wget https://bin.equinox.io/c/4VmDzA7iaJ6/ngrok-stable-linux-amd64.zip
+        unzip ngrok-stable-linux-amd64.zip
+        ./ngrok authtoken ${{ secrets.NGROK_SECRET_KEY }}  # Use the stored NGROK_SECRET_KEY for authentication
+
+        # Expose port 22 using ngrok
+        ./ngrok tcp 22 &  # Expose SSH port 22 to the public internet
+
+        # Wait to get the ngrok public address
+        sleep 5  # Wait for ngrok to be fully set up
+
+        # Retrieve the public address that ngrok gives us
+        NGROK_PUBLIC_URL=$(curl -s http://localhost:4040/api/tunnels | jq -r '.tunnels[0].public_url')
+
+        # Output the public URL for SSH access
+        echo "Ngrok SSH URL: $NGROK_PUBLIC_URL"
+      
+    # Step 6: Keep the server alive indefinitely (empty loop, as you requested)
     - name: Keep the server alive indefinitely
       run: |
         while true; do
