@@ -7,31 +7,40 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    # Step 1: Checkout repo (if necessary)
+    # Step 1: Checkout repository (if necessary)
     - name: Checkout repository
       uses: actions/checkout@v2
-      
+
     # Step 2: Set up SSH keys for secure communication
     - name: Set up SSH
       uses: webfactory/ssh-agent@v0.5.3
       with:
         ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-    # Step 3: Execute command on remote server to fetch server info
-    - name: Fetch server information (public IP, Username)
+    # Step 3: Execute command on remote server to fetch server info (public IP)
+    - name: Fetch public IP, Username and Info
       run: |
-        SERVER_IP=$(curl -s ifconfig.me)  # Get Public IP of the server
-        echo "Public IP of server is: $SERVER_IP"
+        # Fetch the public IP of the server executing the action
+        PUBLIC_IP=$(curl -s ifconfig.me)  # or use ipify
+        echo "Public IP of server is: $PUBLIC_IP"
 
-        # For Username, fetching SSH info would be based on your system setup
-        echo "Server Username is: $(whoami)"
+        # Fetch the username of the machine (SSH user)
+        USERNAME=$(whoami)
+        echo "Username is: $USERNAME"
 
-        # Echo values as GitHub Action outputs for later use
-        echo "SERVER_IP=${SERVER_IP}" >> $GITHUB_ENV
-        echo "SERVER_USERNAME=$(whoami)" >> $GITHUB_ENV
+        # Export to GitHub Action's environment
+        echo "PUBLIC_IP=${PUBLIC_IP}" >> $GITHUB_ENV
+        echo "USERNAME=${USERNAME}" >> $GITHUB_ENV
 
-    # Step 4: Output the results
-    - name: Show Output (SSH Info)
+    # Step 4: Display the public IP and Username
+    - name: Show Output (Public IP, Username)
       run: |
-        echo "Public IP: ${{ env.SERVER_IP }}"
-        echo "Username: ${{ env.SERVER_USERNAME }}"
+        echo "Public IP: ${{ env.PUBLIC_IP }}"
+        echo "Username: ${{ env.USERNAME }}"
+
+    # Step 5: Keep the server running indefinitely (empty loop)
+    - name: Keep the server alive indefinitely
+      run: |
+        while true; do
+          sleep 3600  # Empty loop to keep the server alive doing nothing
+        done
